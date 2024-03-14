@@ -4,7 +4,7 @@ services:
   api:
     image: ghcr.io/saleor/saleor:3.19
     ports:
-      - 8000:8000
+      - ${PORT_SALEOR_API}:8000
     restart: unless-stopped
     networks:
       - saleor-backend-tier
@@ -22,25 +22,25 @@ services:
       - backend.env
     environment:
       - JAEGER_AGENT_HOST=jaeger
-      - DASHBOARD_URL=http://localhost:9000/
+      - DASHBOARD_URL=http://localhost:${PORT_SALEOR_DASHBOARD}/
       - ALLOWED_HOSTS=localhost,api
 
   dashboard:
     image: ghcr.io/saleor/saleor-dashboard:latest
     ports:
-      - 9000:80
+      - ${PORT_SALEOR_DASHBOARD}:80
     restart: unless-stopped
 
   db:
     image: library/postgres:13-alpine
     ports:
-      - 5432:5432
+      - ${PORT_SALEOR_POSTGRES}:5432
     restart: unless-stopped
     networks:
       - saleor-backend-tier
     volumes:
       - saleor-db:/var/lib/postgresql/data
-      - ./replica_user.sql:/docker-entrypoint-initdb.d/replica_user.sql
+      - ./replica_user.sql:/docker-entrypoint-initdb.d/replica_user.sql    
     environment:
       - POSTGRES_USER=saleor
       - POSTGRES_PASSWORD=saleor
@@ -48,7 +48,7 @@ services:
   redis:
     image: library/redis:7.0-alpine
     ports:
-      - 6379:6379
+      - ${PORT_SALEOR_REDIS}:6379
     restart: unless-stopped
     networks:
       - saleor-backend-tier
@@ -74,13 +74,13 @@ services:
   jaeger:
     image: jaegertracing/all-in-one
     ports:
-      - "5775:5775/udp"
-      - "6831:6831/udp"
-      - "6832:6832/udp"
-      - "5778:5778"
-      - "16686:16686"
-      - "14268:14268"
-      - "9411:9411"
+      - "${PORT_SALEOR_JAEGER_UI}:16686"
+      - "${PORT_SALEOR_JAEGER_1}:5775/udp"
+      - "${PORT_SALEOR_JAEGER_2}:6831/udp"
+      - "${PORT_SALEOR_JAEGER_3}:6832/udp"
+      - "${PORT_SALEOR_JAEGER_4}:5778"
+      - "${PORT_SALEOR_JAEGER_5}:14268"
+      - "${PORT_SALEOR_JAEGER_6}:9411"
     restart: unless-stopped
     networks:
       - saleor-backend-tier
@@ -88,8 +88,8 @@ services:
   mailpit:
     image: axllent/mailpit
     ports:
-      - 1025:1025 # smtp server
-      - 8025:8025 # web ui. Visit http://localhost:8025/ to check emails
+      - ${PORT_SALEOR_MAILPIT_SMTP}:1025 # smtp server
+      - ${PORT_SALEOR_MAILPIT_UI}:8025 # web ui. Visit http://localhost:8025/ to check emails
     restart: unless-stopped
     networks:
       - saleor-backend-tier
